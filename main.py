@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import (Qt, QTimer, pyqtSignal, QObject, QSize, QPoint, 
                          QPropertyAnimation, QEasingCurve, QParallelAnimationGroup,
                          QRect, QEasingCurve)
-from PyQt6.QtGui import QColor, QIcon, QFont, QPainter, QBrush, QLinearGradient, QPainterPath, QFontDatabase
+from PyQt6.QtGui import QColor, QIcon, QFont, QPainter, QBrush, QLinearGradient, QPainterPath, QFontDatabase, QAction
 import speech_recognition as sr
 import pyautogui
 
@@ -742,14 +742,22 @@ class CompactVoiceWidget(QMainWindow):
     def create_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)
         
-        # Create a simple icon
-        pixmap = QIcon.fromTheme("audio-input-microphone")
-        if pixmap.isNull():
-            # Fallback to text icon
-            self.tray_icon.setIcon(QIcon())
-        else:
-            self.tray_icon.setIcon(pixmap)
+        # Create a simple icon programmatically
+        pixmap = QPixmap(64, 64)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setBrush(QColor(233, 69, 96))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(4, 4, 56, 56)
+        # Draw mic symbol
+        painter.setBrush(QColor(255, 255, 255))
+        painter.drawRoundedRect(28, 20, 8, 20, 2, 2)
+        painter.drawEllipse(24, 36, 16, 12)
+        painter.end()
+        icon = QIcon(pixmap)
         
+        self.tray_icon.setIcon(icon)
         self.tray_icon.setToolTip("Voice Commander - Ready")
         
         tray_menu = QMenu()
@@ -847,7 +855,6 @@ class CompactVoiceWidget(QMainWindow):
             background-color: #e94560;
             border: 2px solid rgb({glow}, 85, 119);
             border-radius: 23px;
-            box-shadow: 0 0 10px rgba(233, 69, 96, {0.5 + intensity * 0.5});
         """)
     
     def on_text_detected(self, text):
