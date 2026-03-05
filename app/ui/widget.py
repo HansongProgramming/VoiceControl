@@ -4,6 +4,7 @@ from PyQt6.QtCore import (
     QEasingCurve,
     QPropertyAnimation,
     QRect,
+    QRectF,
     Qt,
     QTimer,
 )
@@ -224,6 +225,12 @@ class CompactVoiceWidget(QMainWindow):
         self.expanded_container.hide()
         self.main_layout.addWidget(self.expanded_container)
 
+        # Live transcription area
+        self.transcript_edit = QTextEdit()
+        self.transcript_edit.setReadOnly(True)
+        self.transcript_edit.setMaximumHeight(80)
+        self.transcript_edit.setStyleSheet("background: #181828; color: #e0e0e0; font-size: 11px; border-radius: 8px;")
+        expanded_layout.insertWidget(1, self.transcript_edit)
         self._refresh_list()
 
     # ------------------------------------------------------- Tray icon --
@@ -272,7 +279,8 @@ class CompactVoiceWidget(QMainWindow):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         path = QPainterPath()
-        path.addRoundedRect(self.rect().adjusted(1, 1, -1, -1), 16, 16)
+        rect = self.rect().adjusted(1, 1, -1, -1)
+        path.addRoundedRect(QRectF(rect), 16, 16)
 
         gradient = QLinearGradient(0, 0, 0, self.height())
         gradient.setColorAt(0, QColor(15, 15, 30, 250))
@@ -362,6 +370,12 @@ class CompactVoiceWidget(QMainWindow):
         self.status_label.setText(text[:25] + "..." if len(text) > 25 else text)
         color = "#e94560" if "Heard:" in text else "#888"
         self.subtitle_label.setStyleSheet(f"color: {color};")
+
+        # Append to transcript area if it's a recognized phrase
+        if text.startswith("Heard:"):
+            phrase = text[len("Heard:"):].strip()
+            if phrase:
+                self.transcript_edit.append(phrase)
 
     def _on_command_executed(self, trigger: str):
         self.status_label.setText("✓ Done!")
