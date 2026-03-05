@@ -367,15 +367,18 @@ class CompactVoiceWidget(QMainWindow):
     # -------------------------------------------------------- Voice slots --
 
     def _on_text_detected(self, text: str):
-        self.status_label.setText(text[:25] + "..." if len(text) > 25 else text)
-        color = "#e94560" if "Heard:" in text else "#888"
-        self.subtitle_label.setStyleSheet(f"color: {color};")
-
-        # Append to transcript area if it's a recognized phrase
+        # Only update transcript area on recognized phrases
         if text.startswith("Heard:"):
             phrase = text[len("Heard:"):].strip()
             if phrase:
                 self.transcript_edit.append(phrase)
+            self.status_label.setText(phrase[:25] + "..." if len(phrase) > 25 else phrase)
+            self.subtitle_label.setStyleSheet("color: #e94560;")
+        else:
+            # Only update status/subtitle, not transcript
+            self.status_label.setText(text[:25] + "..." if len(text) > 25 else text)
+            color = "#888"
+            self.subtitle_label.setStyleSheet(f"color: {color};")
 
     def _on_command_executed(self, trigger: str):
         self.status_label.setText("✓ Done!")
